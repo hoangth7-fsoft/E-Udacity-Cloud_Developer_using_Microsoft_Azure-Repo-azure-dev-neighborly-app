@@ -1,5 +1,8 @@
 import azure.functions as func
 import pymongo
+import json
+import os
+
 
 def main(req: func.HttpRequest) -> func.HttpResponse:
 
@@ -7,21 +10,22 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
 
     if request:
         try:
-            url = "localhost"  # TODO: Update with appropriate MongoDB connection information
+            url = os.environ[
+                "MyDbConnection"
+            ]  # DONE: Update with appropriate MongoDB connection information
             client = pymongo.MongoClient(url)
-            database = client['azure']
-            collection = database['advertisements']
+            database = client["hoangth7-neighborly-db"]
+            collection = database["advertisements"]
 
-            rec_id1 = collection.insert_one(eval(request))
+            # rec_id1 = collection.insert_one(eval(request))
+            data = json.loads(req.get_body())
+            rec_id1 = collection.insert_one(data)
 
             return func.HttpResponse(req.get_body())
 
         except ValueError:
             print("could not connect to mongodb")
-            return func.HttpResponse('Could not connect to mongodb', status_code=500)
+            return func.HttpResponse("Could not connect to mongodb", status_code=500)
 
     else:
-        return func.HttpResponse(
-            "Please pass name in the body",
-            status_code=400
-        )
+        return func.HttpResponse("Please pass name in the body", status_code=400)
